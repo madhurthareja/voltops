@@ -1,16 +1,42 @@
 import pytest
 import numpy as np
 from voltops.formulas.basic import BasicFormulas
+from voltops.core.quantities import Voltage, Current, Resistance, Power, SignalMetadata, SignalKind
 from voltops.signal_processing.filters import Filters
 from voltops.signal_processing.transforms import Transforms
 
 def test_ohms_law():
-    assert BasicFormulas.ohms_law(current=2, resistance=5) == 10
-    assert BasicFormulas.ohms_law(voltage=10, resistance=5) == 2
-    assert BasicFormulas.ohms_law(voltage=10, current=2) == 5
+    voltage = BasicFormulas.ohms_law(current=2, resistance=5)
+    assert isinstance(voltage, Voltage)
+    assert voltage.value == pytest.approx(10)
+
+    current = BasicFormulas.ohms_law(voltage=10, resistance=5)
+    assert isinstance(current, Current)
+    assert current.value == pytest.approx(2)
+
+    resistance = BasicFormulas.ohms_law(voltage=10, current=2)
+    assert isinstance(resistance, Resistance)
+    assert resistance.value == pytest.approx(5)
 
 def test_power():
-    assert BasicFormulas.power(voltage=10, current=2) == 20
+    power = BasicFormulas.power(voltage=10, current=2)
+    assert isinstance(power, Power)
+    assert power.value == pytest.approx(20)
+
+    ac_metadata = SignalMetadata(kind=SignalKind.AC_RMS, frequency_hz=60, phase_deg=0)
+    voltage = Voltage(120, metadata=ac_metadata)
+    current = Current(10, metadata=ac_metadata)
+    ac_power = BasicFormulas.power(voltage=voltage, current=current)
+    assert ac_power.metadata.kind is SignalKind.AC_RMS
+
+
+def test_power_metadata_mismatch():
+    meta_a = SignalMetadata(kind=SignalKind.AC_RMS, frequency_hz=50, phase_deg=0)
+    meta_b = SignalMetadata(kind=SignalKind.AC_RMS, frequency_hz=60, phase_deg=0)
+    voltage = Voltage(10, metadata=meta_a)
+    current = Current(1, metadata=meta_b)
+    with pytest.raises(ValueError):
+        BasicFormulas.power(voltage=voltage, current=current)
 
 def test_frequency_spectrum():
     t = np.linspace(0, 1, 1000, endpoint=False)

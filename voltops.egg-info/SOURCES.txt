@@ -7,6 +7,8 @@ voltops.egg-info/SOURCES.txt
 voltops.egg-info/dependency_links.txt
 voltops.egg-info/requires.txt
 voltops.egg-info/top_level.txt
+voltops/core/__init__.py
+voltops/core/quantities.py
 voltops/formulas/__init__.py
 voltops/formulas/basic.py
 voltops/image_processing/__init__.py

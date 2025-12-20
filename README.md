@@ -1,6 +1,6 @@
 # Voltops
 
-**Voltops** is a Python library built for electronics and signal processing enthusiasts. Whether you're an engineer, student, or hobbyist, this package offers intuitive functions for working with electrical formulas and analyzing signals with ease.
+**Voltops** is a Python library built for electronics and signal processing enthusiasts. Whether you're an engineer, student, or hobbyist, this package offers intuitive functions for working with electrical formulas and analyzing signals with ease. Every function is **physics-aware**—values carry metadata (DC/AC, RMS/peak, phase, frequency) so you catch mistakes before they propagate.
 
 ---
 
@@ -21,11 +21,11 @@ from voltops.formulas.basic import BasicFormulas
 
 # Calculate voltage using Ohm's Law: V = I * R
 voltage = BasicFormulas.ohms_law(current=2, resistance=5)
-print(f"Voltage: {voltage} V")  # Output: Voltage: 10 V
+print(f"Voltage: {voltage.value} V (kind={voltage.metadata.kind})")
 
 # Calculate power: P = V * I
-power = BasicFormulas.power(voltage=10, current=2)
-print(f"Power: {power} W")  # Output: Power: 20 W
+power = BasicFormulas.power(voltage=voltage, current=2)
+print(f"Power: {power.value} W")
 ```
 
 ### Frequency Spectrum Analysis
@@ -58,9 +58,12 @@ filtered_signal = Filters.low_pass_filter(signal, cutoff=15, sampling_rate=1000)
 
 ## Features
 
-- **Electronic Formulas**: Ohm's Law, power, and more.
+- **Physics-aware quantities**: Voltage, Current, Resistance/Impedance, Power, Frequency, and Phase objects with waveform metadata.
+- **Electronic Formulas**: Ohm's Law, power, and more—now returning safe quantity objects.
 - **Signal Processing**: FFT, DFT, filtering, and spectral analysis.
 - **Extensible API**: Easy-to-use, modular design for seamless integration.
+
+Learn more about the design direction in [`docs/philosophy.md`](docs/philosophy.md).
 
 
 ## Contributing
@@ -74,7 +77,7 @@ If you'd like to report a bug, request a feature, or contribute code, feel free 
 This library is actively developed and maintained by **Madhur Thareja**.
 
 
-## 📄 License
+## License
 
 Licensed under the [MIT License](https://opensource.org/licenses/MIT).  
 Feel free to use, modify, and distribute this library.

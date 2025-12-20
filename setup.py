@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="voltops",
-    version="0.1.1",
+    version="0.2.0",
     author="Madhur Thareja",
     author_email="madhurthareja1105@gmail.com",
     description="A Python library for electronic formulas and signal processing",
