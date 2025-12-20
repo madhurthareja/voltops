@@ -1,58 +1,74 @@
 # VoltOps Core Philosophy
 
-VoltOps delivers **physics-aware computation for everyday electronics and signal-analysis workflows**. Each public API corresponds to a concept that practicing engineers recognize—Ohm's Law, impedance, FFT-based measurement, and so on. Rather than replicating generic math helpers, VoltOps focuses on wiring realistic metadata, guardrails, and educational context into every computation.
+VoltOps is designed to support **electronics and signal-analysis workflows where physical context matters**. The library exposes APIs that correspond to familiar engineering concepts—Ohm’s law, impedance, power, frequency analysis—while explicitly tracking the assumptions under which those concepts are valid.
+
+Rather than acting as a general numerical toolbox, VoltOps focuses on preserving metadata, enforcing basic physical constraints, and documenting intent at the API level.
 
 ---
 
-## Guiding Assumptions
+## Operating Assumptions
 
-- **Linear, time-invariant, lumped elements** unless explicitly stated.
-- **Steady-state analysis** is the default; transient behavior must be modeled consciously.
-- **Closed-form expressions first**. Numerical solvers and optimizers stay in delegated libraries (e.g., SciPy) until they can be wrapped with clear physics-aware semantics.
-- **Quantities, not scalars**. VoltOps manipulates `Voltage`, `Current`, `Power`, etc., keeping track of waveform kind (DC, AC RMS, AC peak), phase references, and carrier frequency.
+Unless stated otherwise, computations in VoltOps assume:
 
-## Non‑Goals (for now)
+* **Linear, time-invariant, lumped systems**
+* **Steady-state behavior**, with transient effects treated as a separate modeling choice
+* **Closed-form analytical relationships**, with numerical solvers delegated to external libraries when needed
+* **Typed physical quantities**, such as voltage or current, rather than unannotated scalars
 
-Reinforcing explicit "no" statements builds trust:
-
-- VoltOps is **not** a SPICE replacement or a general-purpose circuit simulator.
-- **No real-time execution guarantees**—runtime safety belongs to your embedded toolchain.
-- **No nonlinear semiconductor device physics**. Analytical helpers for BJTs/FETs may arrive later, but they will remain closed-form.
-- **No blind duplication of SciPy/NumPy** utilities. We wrap them only when physics-aware metadata adds value.
-
-## Design Principles
-
-1. **Quantities over scalars** – Type-safe values that guard against invalid operations and attach waveform metadata everywhere.
-2. **Physical invariants as tests** – Unit tests assert conservation laws, scaling behavior, and dimensional consistency instead of memorizing golden numbers.
-3. **Layered architecture** – Packages are separated into `core/` (metadata + quantities), `formulas/`, `signal_processing/`, and future `circuits/` or `numeric/` layers. Lower layers never depend on higher ones.
-4. **Context-rich results** – APIs return annotated objects. Even FFT helpers yield spectra with sampling metadata rather than naked arrays.
-5. **Delegation with intent** – Expensive numerical kernels continue to live in SciPy/NumPy; VoltOps focuses on keeping the surrounding context faithful to the underlying physics.
-
-## Roadmap Snapshot
-
-| Theme | Why it matters | Current Status |
-| --- | --- | --- |
-| Quantity primitives | Enforce metadata, catch misuse early | (`voltage`, `current`, `resistance`, etc.) |
-| Circuit abstractions | Series/parallel, dividers, equivalents | planned |
-| Measurement helpers | ADC quantization, SNR, aliasing guards | planned |
-| Signal-aware DSP | FFTs that return annotated spectra | foundational transforms |
-| Symbolic hooks | Bridge SymPy for derivations | future exploration |
-
-## How This Shapes Implementation
-
-- **APIs describe intent**: instead of `voltage = i * r`, users call `BasicFormulas.ohms_law(current=i, resistance=r)` and receive a `Voltage` object tied to the originating metadata.
-- **Docs teach, not just list**: each recipe explains the physical context, common pitfalls, and how VoltOps keeps track of assumptions.
-- **Architecture anticipates acceleration**: should we swap in C++ kernels later, the Python-facing API remains unchanged because all metadata plumbing lives in `core/`.
-
-## Delegations
-
-| Capability | Preferred Library |
-| --- | --- |
-| Large-scale linear algebra | NumPy / SciPy |
-| Nonlinear solvers & optimizers | SciPy |
-| Symbolic manipulation | SymPy (optional future layer) |
-| Plotting / visualization | Matplotlib, Plotly, etc. (kept outside VoltOps) |
+These assumptions are made explicit to reduce ambiguity and prevent accidental misuse.
 
 ---
 
-VoltOps succeeds when it saves engineers from re-deriving the same relationships, documents the assumptions behind every helper, and keeps metadata honest from input to output. Depth over breadth, physics over convenience, meaning over speed.
+## Design Considerations
+
+1. **Quantities instead of scalars**
+   Electrical values are represented as typed quantities (e.g., `Voltage`, `Current`, `Power`) that carry waveform information such as DC/AC classification, RMS or peak representation, phase reference, and frequency where applicable.
+
+2. **Physical consistency checks**
+   Tests emphasize conservation laws, scaling behavior, and dimensional consistency rather than relying solely on fixed numerical outputs.
+
+3. **Layered structure**
+   The codebase is organized into layers (`core`, `formulas`, `signal_processing`, etc.) with one-way dependencies. Lower layers remain independent of higher-level abstractions.
+
+4. **Context-preserving outputs**
+   Functions return annotated results instead of raw arrays. For example, frequency-domain transforms retain sampling and spectral metadata rather than discarding it.
+
+5. **Intentional delegation**
+   Established libraries such as NumPy and SciPy are used for numerical kernels. VoltOps focuses on providing physics-aware structure around these computations rather than re-implementing them.
+
+---
+
+## Development Roadmap (Indicative)
+
+| Area                    | Rationale                                      | Status       |
+| ----------------------- | ---------------------------------------------- | ------------ |
+| Quantity primitives     | Preserve metadata and enforce valid operations | Implemented  |
+| Circuit abstractions    | Express common analytical reductions           | Designed     |
+| Measurement helpers     | Model ADC limits, noise, aliasing              | Designed     |
+| Signal-aware transforms | Retain context across domains                  | Foundational |
+| Symbolic integration    | Support derivations alongside numerics         | Exploratory  |
+
+---
+
+## Implementation Implications
+
+* APIs are written to **express intent explicitly**. For example, voltage is derived through a named relationship rather than implicit arithmetic.
+* Documentation focuses on **assumptions and failure modes**, not just usage.
+* The architecture keeps metadata handling separate from numerical kernels, allowing future optimization without altering user-facing behavior.
+
+---
+
+## External Dependencies
+
+VoltOps relies on existing libraries for well-established functionality:
+
+| Capability                  | Library                     |
+| --------------------------- | --------------------------- |
+| Linear algebra and numerics | NumPy, SciPy                |
+| Nonlinear solvers           | SciPy                       |
+| Symbolic algebra            | SymPy (optional)            |
+| Visualization               | External plotting libraries |
+
+---
+
+VoltOps aims to reduce repeated derivations, make assumptions visible, and keep physical meaning intact throughout a computation pipeline. The emphasis is on clarity and correctness rather than breadth or performance.
